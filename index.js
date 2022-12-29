@@ -185,37 +185,46 @@ function add_role() {
 
 // Add An Employee
 function add_employee() {
-    inquirer.prompt([
-        {
-            type: 'input',
-            message: 'What is the first name of the new employee?',
-            name: 'first_name'
-        },
-        {
-            type: 'input',
-            message: 'What is the last name of the new employee?',
-            name: 'last_name'
-        },
-        {
-            type: 'input',
-            message: 'What is the rode id for the new employee?',
-            name: 'role_id'
-        },
-        {
-            type: 'input',
-            message: 'What is the id of the manager the employee is assigned to?',
-            name: 'manager_id'
+    db.query('SELECT * FROM roles', (err, results) => {
+        if (err) {
+            console.error(err)
         }
-    ]).then((data) => {
-        const answer = [data.first_name, data.last_name, data.role_id, data.manager_id];
-        const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
-            VALUES (?, ?, ?, ?)`;
-        db.query(sql, answer, (err, result) => {
-            if (err) {
-                console.error(err)
+
+        const rolelist = results.map(({ role_title, id}) => ({name: role_title, value: id}));
+
+        inquirer.prompt([
+            {
+                type: 'input',
+                message: 'What is the first name of the new employee?',
+                name: 'first_name'
+            },
+            {
+                type: 'input',
+                message: 'What is the last name of the new employee?',
+                name: 'last_name'
+            },
+            {
+                type: 'list',
+                message: 'What is the rode for the new employee?',
+                choices: rolelist,
+                name: 'role_id'
+            },
+            {
+                type: 'input',
+                message: 'What is the id of the manager the employee is assigned to?',
+                name: 'manager_id'
             }
+        ]).then((data) => {
+            const answer = [data.first_name, data.last_name, data.role_id, data.manager_id];
+            const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
+                VALUES (?, ?, ?, ?)`;
+            db.query(sql, answer, (err, result) => {
+                if (err) {
+                    console.error(err)
+                }
+            })
+            view_emp();
         })
-        view_emp();
     })
 }
 
